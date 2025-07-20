@@ -30,19 +30,25 @@ function App() {
       if (count <= 0) {
         clearInterval(interval);
         setRunning(false);
-        // デスクトップ通知
-        if (window.Notification && Notification.permission === 'granted') {
-          new Notification('タイマー終了', { body: '時間になりました！' });
-        } else if (window.Notification && Notification.permission !== 'denied') {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              new Notification('タイマー終了', { body: '時間になりました！' });
-            }
-          });
+        // デスクトップ通知（フロントエンド側で確実に表示）
+        if (window.Notification) {
+          if (Notification.permission === 'granted') {
+            new Notification('タイマー終了', { body: '時間になりました！' });
+          } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+              if (permission === 'granted') {
+                new Notification('タイマー終了', { body: '時間になりました！' });
+              }
+            });
+          }
         }
-        // 音声通知
-        const audio = new Audio('/notify.mp3');
+        // macOS標準通知音はOS側で鳴る場合のみ。Web側は独自音源利用。
+        const audio = new Audio('/notify.wav');
         audio.play();
+  // Rust側でmacOS通知を呼び出す
+  if (window.__TAURI__ && window.__TAURI__.invoke) {
+    window.__TAURI__.invoke('show_native_notification');
+  }
       }
     }, 1000);
   };
