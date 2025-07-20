@@ -25,5 +25,14 @@ pub async fn start_timer(seconds: u64) {
         remaining -= 1;
         // ここでフロントエンドに残り時間を通知する処理を追加可能
     }
-    // タイマー終了時の通知処理（デスクトップ通知や音声再生）は後で追加
+    // macOS標準通知音と通知
+    #[cfg(target_os = "macos")]
+    {
+        use std::process::Command;
+        let script = r#"display notification \"時間になりました！\" with title \"タイマー終了\" sound name \"Ping\""#;
+        let _ = Command::new("osascript")
+            .arg("-e")
+            .arg(script)
+            .output();
+    }
 }
